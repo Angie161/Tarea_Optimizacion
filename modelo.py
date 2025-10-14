@@ -45,7 +45,7 @@ h = mdl.continuous_var(name='h_Jumbo')
 # ------------ Función objetivo ------------
 mdl.minimize(
     mdl.sum(mdl.sum(p[i][k]*x[i,k] for i in I) for k in K) 
-    - 1300*z - 800*h
+    - 1800*z - 1000*h
 )
 
 # -------------- Restricciones --------------
@@ -85,19 +85,19 @@ mdl.add_constraint((mdl.sum(mdl.sum(v[i][1]*x[i,k] for k in K) for i in range(0,
 mdl.add_constraint(mdl.sum(x[0,k] for k in K) == mdl.sum(x[1,k] for k in K))
 
 # Restricción porcentaje de calorías a carbohidratos
-mdl.add_constraint( 4*(mdl.sum(mdl.sum(v[i][2]*x[i,k] for k in K) for i in I)) <= 0.5 * (mdl.sum(mdl.sum(v[i][0]*x[i,k] for k in K) for i in I)) )
+mdl.add_constraint( 4*(mdl.sum(mdl.sum(v[i][2]*x[i,k] for k in K) for i in I)) <= 0.45 * (mdl.sum(mdl.sum(v[i][0]*x[i,k] for k in K) for i in I)) )
 
 # Restricciones para el cambio de precio del pescado si se compra más de 2 kg
-mdl.add_constraint(x[3,0] >= 4 * y)
-mdl.add_constraint(x[3,0] <= 4 + M * y)
+mdl.add_constraint(x[3,0] >= 5 * y)
+mdl.add_constraint(x[3,0] <= 5 + M * y)
 
 mdl.add_constraint(z >= x[3,0] - M * (1 - y))
 mdl.add_constraint(z <= M * y)
 mdl.add_constraint(z <= x[3,0])
 
 # Restricciones para el cambio de precio de las legumbres si se compra más de 3 kg
-mdl.add_constraint(x[4,1] >= 5 * w)
-mdl.add_constraint(x[4,1] <= 5 + M * w)
+mdl.add_constraint(x[4,1] >= 8 * w)
+mdl.add_constraint(x[4,1] <= 8 + M * w)
 
 mdl.add_constraint(h >= x[4,1] - M * (1 - w))
 mdl.add_constraint(h <= M * w)
@@ -115,7 +115,10 @@ if sol:
     for i in I:
         for k in K:
                 S[i,k] = x[i,k].solution_value
-    print(f'Matriz con solución de compras: \n {S}')
+    print(f'Matriz con solución de compras: \n {S} \n')
+    print("1: Sí, 0: No")
+    print(f"¿Francisco decidió usar el descuento del Líder?: {y.solution_value}")
+    print(f"¿Francisco decidió usar el descuento del Jumbo?: {w.solution_value}")
 else:
     print("No posee solución")
     

@@ -31,15 +31,22 @@ v = [
 ]
 
 S = np.zeros((7,2))
+M = 1000
 
 mdl = Model(name = 'Modelo')
 
 # --------------- Variables ----------------
-x = mdl.integer_var_dict(((i,k) for i in I for k in K), name='x')
-# m = mdl.binary_var_dict(I, name='x')
+x = mdl.integer_var_dict(((i,k) for i in I for k in K), name='x', lb = 0)
+y = mdl.binary_var(name='y_pescado_Lider')
+z = mdl.continuous_var(name='z_Lider')
+w = mdl.binary_var(name='w_legumbres_Jumbo')
+h = mdl.continuous_var(name='h_Jumbo')
 
 # ------------ Función objetivo ------------
-mdl.minimize(mdl.sum(mdl.sum(p[i][k]*x[i,k] for i in I) for k in K))
+mdl.minimize(
+    mdl.sum(mdl.sum(p[i][k]*x[i,k] for i in I) for k in K) 
+    - 1300*z - 800*h
+)
 
 # -------------- Restricciones --------------
 
@@ -72,14 +79,35 @@ mdl.add_constraint(
 mdl.add_constraint(mdl.sum(x[6,k] for k in K) <= 0.1 * (mdl.sum(mdl.sum(x[i,k] for i in I) for k in K)))
 
 # Restricción de porcentaje de vitaminas para frutas y verduras
-mdl.add_constraint((mdl.sum(mdl.sum(v[i][1]*x[i,k] for k in K) for i in range(0,3))) >= 0.7 * ((mdl.sum(mdl.sum(v[i][1]*x[i,k] for k in K) for i in I))))
+mdl.add_constraint((mdl.sum(mdl.sum(v[i][1]*x[i,k] for k in K) for i in range(0,3))) >= 0.5 * ((mdl.sum(mdl.sum(v[i][1]*x[i,k] for k in K) for i in I))))
 
 # Restricción de proporción de frutas y verduras
 mdl.add_constraint(mdl.sum(x[0,k] for k in K) == mdl.sum(x[1,k] for k in K))
 
 # Restricción porcentaje de calorías a carbohidratos
-mdl.add_constraint( 4*(mdl.sum(mdl.sum(v[i][2]*x[i,k] for k in K) for i in I)) <= 0.4 * (mdl.sum(mdl.sum(v[i][0]*x[i,k] for k in K) for i in I)) )
+mdl.add_constraint( 4*(mdl.sum(mdl.sum(v[i][2]*x[i,k] for k in K) for i in I)) <= 0.5 * (mdl.sum(mdl.sum(v[i][0]*x[i,k] for k in K) for i in I)) )
 
+# Restricciones para el cambio de precio del pescado si se compra más de 2 kg
+mdl.add_constraint(x[3,0] >= 4 * y)
+mdl.add_constraint(x[3,0] <= 4 + M * y)
+
+mdl.add_constraint(z >= x[3,0] - M * (1 - y))
+mdl.add_constraint(z <= M * y)
+mdl.add_constraint(z <= x[3,0])
+
+# Restricciones para el cambio de precio de las legumbres si se compra más de 3 kg
+mdl.add_constraint(x[4,1] >= 5 * w)
+mdl.add_constraint(x[4,1] <= 5 + M * w)
+
+mdl.add_constraint(h >= x[4,1] - M * (1 - w))
+mdl.add_constraint(h <= M * w)
+mdl.add_constraint(h <= x[4,1])
+
+# Restricciones de dominio
+mdl.add_constraint(z >= 0)
+mdl.add_constraint(h >= 0)
+
+# ---------------- Solución ----------------
 sol = mdl.solve(log_output =True)
 
 if sol:

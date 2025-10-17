@@ -45,7 +45,7 @@ h = mdl.continuous_var(name='h_Jumbo')
 # ------------ Función objetivo ------------
 mdl.minimize(
     mdl.sum(mdl.sum(p[i][k]*x[i,k] for i in I) for k in K) 
-    - 1800*z - 1000*h
+    - 1500*z - 700*h
 )
 
 # -------------- Restricciones --------------
